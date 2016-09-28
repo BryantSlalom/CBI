@@ -1,0 +1,930 @@
+<apex:component controller="CBIUSCollectionsCreateCtrl" extensions="CBIUSCollectionsUtility" allowdml="true">
+    <!-- JQUERY -->
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/js/jquery-2.2.4.min.js')}" />
+
+    <!-- JQUERY UI - needed for access to .widget() to support MultiSelectCheckboxes. Adding CSS breaks our PatternLib css for DatePicker.
+    so we manually added required MultiSelectCheckbox CSS inline in this page. -->
+    <apex:includescript value="{!URLFOR($Resource.JQueryUIFull, '/jquery-ui-1.12.0/jquery-ui.min.js')}" />
+    <!--<apex:stylesheet value="{!urlfor($resource.jqueryuifull, '/jquery-ui-1.12.0/jquery-ui.min.css')}" />-->
+    <!--<apex:stylesheet value="{!URLFOR($Resource.JQueryUIFull, '/jquery-ui-1.12.0/jquery-ui.theme.min.css')}" /> -->
+    <!-- PatternLib is our UX/functionality specific for these pages. -->
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/lib/codemirror.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/js/jquery.tagsinput.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/mode/javascript/javascript.js')}" />
+    <!-- MultiSelect Checkboxes -->
+    <apex:includescript value="{!URLFOR($Resource.MultiSelect2, '/jquery-ui-multiselect-widget-master/src/jquery.multiselect.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.MultiSelect2, '/jquery-ui-multiselect-widget-master/jquery.multiselect.css')}" />
+    <!-- DataTables plugin -->
+    <apex:includescript value="{!URLFOR($Resource.DataTablesFull, '/DataTables-1.10.12/media/js/jquery.dataTables.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.DataTablesFull, '/DataTables-1.10.12/media/css/jquery.dataTables.min.css')}" />
+    <!-- PatternLib is our UX/functionality specific for these pages.
+    Include them last so they take precedence and override others. -->
+    <apex:stylesheet value="{!URLFOR($Resource.PatternLib, '/pattern-library/css/jquery.tagsinput.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.PatternLib, '/pattern-library/lib/codemirror.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.PatternLib, '/pattern-library/css/style.css')}" />
+    <!-- attributes for static values in componenet -->
+    <apex:attribute name="title" type="String" description="Title" />
+    <apex:attribute name="detailTitle" type="String" description="TODO:" />
+    <apex:attribute name="recordtype" type="String" assignto="{!rt}" description="TODO:" />
+
+    <apex:form >
+        <div class="wrapper">
+            <div class="form_cntnr">
+                <br />
+                <br />
+
+                <h1 class="h1title">New {!title}</h1>&nbsp;&nbsp;&nbsp;&nbsp;<h1 id="title" class="stepsFont"></h1>
+                <button class="btn btn right" type="button" id="doneButton" onclick="CollectionsCreate.GetValues()">Done</button>
+                <button class="btn btn right" type="button" id="nextButton" onclick="CollectionsCreate.Next()">Next</button>
+                <button class="btn btn right" type="button" id="backButton" onclick="CollectionsCreate.Back()" style="border: 2px solid #06A0DB; background: none; width:100px; background-color: #ffffff; color: #06A0DB; margin:5px;">Back</button>
+                <button class="btn btn right" type="button" id="cancelButton" onclick="CollectionsCreate.Cancel()" style="border: 2px solid #e3465a; background: none; width: 100px; background-color: #ffffff; color: #e3465a; margin: 5px; ">Cancel</button>
+                <br />
+                <div class="styleLine">&nbsp;</div>
+                <apex:outputpanel id="errorMessageBlock" styleclass="error">
+                    <apex:messages styleclass="error apexMsgs" />
+                </apex:outputpanel>
+                <br />
+                <div id="stepOne" class="steps">
+                    <div class="rowOneIA h2title" style="font-size: 10px; display:block">{!detailTitle} Detail</div>
+                    <div style="float:right;"><label class="required"></label>&nbsp; Required Fields</div>
+                    <div class="rowOneIA" style="display:inline-block;">
+                        <!-- hack to run method that sets recordtype of picklist that follows -->
+                        <apex:outputtext value="{!loadRecordType}" />
+                        <apex:outputlabel value="Type" styleclass="small required" for="typeCode" />
+                        <apex:inputfield value="{!iaFet.Type_CD__c}" id="typeCode" style="Width:349px;" required="True" onchange="CollectionsCreate.EnableNextButton()" />
+                    </div>
+                    <div class="rowOneIA" style="display:inline-block;">
+                        <apex:outputpanel rendered="{!NOT(recordtype == 'Item Authorization')}">
+                            <apex:outputlabel value="Price" styleclass="small" for="Price" />
+                            <input id="priceInput" type="text" onclick="" style="width:100px;" value="{!iaFet.FEATURE_PRICE__c}" />
+                        </apex:outputpanel>
+                    </div>
+                    <div class="rowOneIA" style="display:inline-flex;">
+                        <apex:outputpanel rendered="{!NOT(recordtype == 'Feature')}">
+                            <input type="checkbox" name="newSet" onclick="" value="{!iaFet.NEW_SET_FLG__c}" id="newSet" />
+                            <apex:outputlabel value="New Set" for="newSet" styleclass="small inline" />
+                        </apex:outputpanel>
+                        <input type="checkbox" name="onMenu" onclick="" value="{!iaFet.ON_MENU_FLG__c}" id="onMenu" />
+                        <apex:outputlabel value="On Menu" for="onMenu" styleclass="small inline" />
+                    </div>
+                    <div class="rowOneIA" style="display:inline-block;">
+                        <apex:outputlabel value="Additional Notes" styleclass="small" for="notes" />
+                        <textarea rows="3" id="notes" value="" />
+                        <div class="rowOneIA h3title" style="font-size:10px;">Max 290 characters</div>
+                    </div>
+                </div>
+                <div id="stepTwo" class="steps">
+                    <div class="rowOneIA h2title" style="font-size: 10px; display:block">SKU/PACKAGE SELECTION</div>
+                    <div style="float:right;"><label class="required"></label>&nbsp; Required Fields</div>
+                    <div class="rowOneIA" style="display:inline-block;">
+                        <apex:outputlabel value="Retailer UPC" styleclass="small" />
+                        <input name="input" type="text" id="brand" style="width:345px;"></input>
+                    </div>
+                    <div class="rowOneIA">
+                        <apex:outputlabel value="Brand" styleclass="small required" />
+                        <select name="dropdown" id="brandDropdown" onchange="CollectionsCreate.BrandOnChange(); CollectionsCreate.PageTwoValidation(); ">
+                            <apex:repeat value="{!Brands}" var="brand">
+                                <option value="{!brand.OptionId}">{!brand.OptionLabel}</option>
+                            </apex:repeat>
+                        </select>
+                    </div>
+                    <div class="rowOneIA" style="display:inline-block">
+                        <input type="radio" id="pkgRadio" name="skuPkgRadio" value="PKG" checked="checked" onchange="CollectionsCreate.SkuPgkRadioOnChange()" />&nbsp;&nbsp;<label class="small inline pkgSkuRadios">Package</label>&nbsp;&nbsp;
+                        <input type="radio" id="skuRadio" name="skuPkgRadio" value="SKU" onchange="CollectionsCreate.SkuPgkRadioOnChange()" />&nbsp;&nbsp;<label for="skuRadio" class="small inline pkgSkuRadios">SKU</label>
+                        <select name="dropdown" id="skuPkgSelect" style="width:370px;" onchange="CollectionsCreate.PageTwoValidation()">
+                            <apex:repeat value="{!PreloadedSkuPkgs}" var="pkgSku">
+                                <option value="{!pkgSku.OptionId}">{!pkgSku.OptionLabel}</option>
+                            </apex:repeat>
+                        </select>
+                    </div>
+                    <div class="rowOneIA">
+                        <apex:outputlabel value="Start Date" styleclass="small required" /><br />
+                        <input type="text" name="input" value="" class="customdatepicker" id="startDate" placeholder="MM/DD/YYYY" onchange="CollectionsCreate.PageTwoValidation()" onkeyup="CollectionsCreate.PageTwoValidation()" />
+                    </div>
+                    <div class="rowOneIA" >
+                        <apex:outputlabel value="End Date" styleclass="small" />
+                        <input type="text" name="input" value="" class="customdatepicker" id="endDate" placeholder="MM/DD/YYYY" />
+                    </div>
+                    <div class="rowOneIA">
+                        <apex:outputlabel value="Reset Start" styleclass="small" />
+                        <input type="text" name="input" value="{!iaFet.RESET_PERIOD_BEGIN_DT_ID__c}" class="customdatepicker" id="resetStartDate" placeholder="MM/DD/YYYY" />
+                    </div>
+                    <div class="rowOneIA">
+                        <apex:outputlabel value="Reset End" styleclass="small" />
+                        <input type="text" name="input" value="{!iaFet.RESET_PERIOD_END_DT_ID__c}" class="customdatepicker" id="resetEndDate" placeholder="MM/DD/YYYY" />
+                    </div>                    
+                </div>
+                <div id="stepThree" class="steps">
+                    <div class="rowOneIA h2title " style="font-size: 10px; display:block">Store SELECTION</div>
+                    <p style="margin-left:9px;">Stores that meet any of the criteria you fill below will be added to this {!title}, any additional stores can be added after its creation</p>
+                    <div style="float:right;"><label class="required"></label>&nbsp; Required Fields</div>
+                    <div class="rowOneIA" style="display:inline-block;">
+                        <apex:outputlabel value="Ultimate Parent Account" styleclass="small required " />
+                        <c:Typeahead searchboxid="acctSearchBox"
+                                     object="Account"
+                                     primaryfield="Name"
+                                     searchscope="NAME" placeholder="Start typing account name" minsearchlength="3"
+                                     destinationforselectedid="parentAccountId"
+                                     destinationforselectedvalue="parentAccountName"
+                                     filterclause=" (RecordTypeId = SINGLEQUOTE{!RecordType_Account_USAccount}SINGLEQUOTE AND Est_un_compte_parent__c = True) "
+                                     stealfocus="false"
+                                     onselectcallbackfunction="CollectionsCreate.LoadSubAccounts"
+                                     id="Account"
+                                     style="width:440px; height:16px;margin-top:17px;" />
+                    </div>
+                    <div style="margin-left:7px;">
+                        
+                        <div class="rowOneIA">
+                            <input type="checkbox" name="addAllParentStores" onclick="" value="{!iaFet.Add_all_Parent_Account_stores__c}" id="addAllParentStores" />&nbsp;&nbsp;
+                            <apex:outputlabel value="ADD TO ALL STORES IN THIS PARENT ACCOUNT" for="addAllParentStores" styleclass="small inline" />
+                        </div>
+                    </div>
+                    <br />
+                    <div id="selectionCriteria" style="margin-left:5px;">
+                        <div class="rowOneIA" style="display:inline-block; margin-left:5px;">
+                            <input type="radio" id="acctAndSub" name="storeSetType" checked="checked" value="sub" onclick="CollectionsCreate.StoreSetTypeOnChange()" />&nbsp;&nbsp;<label class="small inline pkgSkuRadios pk">SubAccount</label>&nbsp;&nbsp;
+                            <input type="radio" id="rptToCD" name="storeSetType" value="report" onclick="CollectionsCreate.StoreSetTypeOnChange()" />&nbsp;&nbsp;<label for="skuRadio" class="small inline pkgSkuRadios pk">Report to Code</label>
+                            <input type="radio" id="mktGrpCD" name="storeSetType" value="group" onclick="CollectionsCreate.StoreSetTypeOnChange()" />&nbsp;&nbsp;<label for="skuRadio" class="small inline pkgSkuRadios pk">Marketing Group Code</label>
+                        </div>
+                        <table>
+                            <tr>
+                                <td>
+                                    <div class="rowOneIA" style="display:inline-block;" id="subAccounts">
+                                        <apex:outputlabel value="Sub Account(s)" styleclass="small" />
+                                        <select name="dropdown" class="multiselectCheckbox" multiple="multiple" id="subAccountSelect" style="width:474px;display:block;" size="1"></select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="rowOneIA" style="display:inline-block;" id="rptToCode">
+                                        <apex:outputlabel value="Report to Code(s)" styleclass="small" />
+                                        <select name="dropdown" class="multiselectCheckbox" multiple="multiple" id="rptToCodeSelect" style="width:474px;display:block;" size="1"></select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="rowOneIA" style="display:inline-block;" id="mktGrp">
+                                        <apex:outputlabel value="Marketing Group(s)" styleclass="small" />
+                                        <select name="dropdown" class="multiselectCheckbox" multiple="multiple" id="mktGrpSelect" style="width:474px;display:block;" size="1"></select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="rowOneIA" style="display=inline-block;" id="states">
+                                        <apex:outputlabel value="State(s)" styleclass="small" />
+                                        <select multiple="multiple" class="multiselectCheckbox" name="dropdown" id="stateDropdown" style="width:150px;display:block;" size="1">
+                                            <apex:repeat value="{!States}" var="State">
+                                                <option value="{!State.Value}">{!State.Label}</option>
+                                            </apex:repeat>
+                                        </select>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="modals">
+                    <div id="cancelModal" class="modal">
+                        <div class="content sm-modal">
+                            <h1 style="width: 500px; border-bottom: none; color: #e3465a">Confirm</h1>
+                            <div style="width: 500px; border-bottom: 2px solid #e3465a;">&nbsp;</div>
+                            <p>
+                                <center class="small">
+                                    Are you sure you want to leave this page without saving the record?
+                                    <br /><br />
+                                    <button class="btn support primary close" type="button" onclick="CollectionsCreate.CancelModal()" style="border: 2px solid #e3465a; background: none; width:100px; background-color: #ffffff; color: #e3465a; ">No</button>
+                                    <button class="btn support primary close" type="button" onclick="CollectionsCreate.CancelCollection();" style="border: 2px solid #1ec68a; background: none; width: 100px; background-color: #1ec68a; color: #ffffff; ">Yes</button>
+                                </center>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <apex:actionfunction name="brandCode" action="{!done}" rerender="errorMessageBlock">
+            <apex:param assignto="{!iaFet.NEW_SET_FLG__c}" name="pNewSet" value="" />
+            <apex:param assignto="{!iaFet.ON_MENU_FLG__c}" name="pOnMenu" value="" />
+            <apex:param assignto="{!iaFet.FEATURE_PRICE__c}" name="pFeaturePrice" value="" />
+            <apex:param assignto="{!iaFet.NOTES_TXT__c}" name="pNotes" value="" />
+            <apex:param assignto="{!iaFet.Brand_Cd__c}" name="pBrandCode" value="" />
+            <apex:param assignto="{!iaFet.MASTER_PKG_CD__c}" name="pMasterPkgCode" value="" />
+            <apex:param assignto="{!iaFet.MASTER_SKU_CD__c}" name="pMasterSkuCode" value="" />
+            <apex:param assignto="{!iaFet.SET_PERIOD_BEGIN_DT_ID__c}" name="pStartDate" value="" />
+            <apex:param assignto="{!iaFet.SET_PERIOD_END_DT_ID__c}" name="pEndDate" value="" />
+            <apex:param assignto="{!iaFet.RESET_PERIOD_BEGIN_DT_ID__c}" name="pResetStartDate" value="" />
+            <apex:param assignto="{!iaFet.RESET_PERIOD_END_DT_ID__c}" name="pResetEndDate" value="" />
+            <apex:param assignto="{!iaFet.Ultimate_Parent__c}" name="pUltimateParent" value="" />
+            <apex:param assignto="{!iaFet.Add_all_Parent_Account_stores__c}" name="pAddAllParentAccounts" value="" />
+            <apex:param assignto="{!iaFet.Sub_Accounts__c}" name="pSubAccounts" value="" />
+            <apex:param assignto="{!iaFet.Marketing_Groups__c}" name="pMkgtGroups" value="" />
+            <apex:param assignto="{!iaFet.Report_To_Codes__c}" name="pRptToCodes" value="" />
+            <apex:param assignto="{!iaFet.States__c}" name="pStates" value="" />
+        </apex:actionfunction>
+    </apex:form>
+    <script>
+         var CollectionsCreate = function() {
+             var currentWizardStep = 1;
+             var parentAccountId = ''; //The id of the selected Parent Account. Gets set in loadSubAccounts callback.
+             var subAccountsArray = [];
+             var mGroupsArray = [];
+             var idForClone = '{!currentAuthFeatureId}';
+
+
+         $(document).ready(function() {
+             createMultiSelectBoxes('select.multiselectCheckbox');
+             $('input.customdatepicker').datepicker({
+                 "dateFormat": "mm/dd/yy"
+             });
+             cssButtonLikeDropdownStyle('subAccountSelect_ms');
+             cssButtonLikeDropdownStyle('stateDropdown_ms');
+             cssButtonLikeDropdownStyle('rptToCodeSelect_ms');
+             cssButtonLikeDropdownStyle('mktGrpSelect_ms');
+             if (idForClone) {
+                 showStepOne();
+                 defaultInputFields();
+             }else{
+                 showStepOne();
+                 fixTypeLabels();
+             }
+
+         });
+
+
+         function pageTwoValidation() {
+             var pkgsku = $('#skuPkgSelect option:selected').val();
+             var brandCodeVal = $('#brandDropdown option:selected').val();
+             var startDate = $('#startDate').val();
+             if (startDate != "" && pkgsku != 'undefined' && pkgsku != "" && brandCodeVal != 0) {
+                 toggleNextButton(false);
+             } else {
+                 toggleNextButton(true);
+             }
+         }
+
+
+
+         function clearMultiselect() {
+             if (idForClone) {
+                 $('#subAccountSelect').multiselect("uncheckAll");
+                 $('#rptToCodeSelect').multiselect("uncheckAll");
+                 $('#mktGrpSelect').multiselect("uncheckAll");
+
+             } else {
+                 $('#subAccountSelect').multiselect("uncheckAll");
+                 $('#rptToCodeSelect').multiselect("uncheckAll");
+                 $('#mktGrpSelect').multiselect("uncheckAll");
+                 $('#stateDropdown').multiselect("uncheckAll");
+             }
+         }
+
+         function createMultiSelectBoxes(selector) {
+             $(selector).multiselect({
+                 header: false,
+                 selectedList: 5,
+                 minWidth: 150,
+
+                 open: function(event, ui) {
+                     $(this).css({
+                         'border': '1px solid #06a0db',
+                         'outline': 'none !important'
+                     });
+                     /*$('#stateDropdown_ms').css({
+                     'border':'1px solid #06a0db',
+                     'outline': 'none !important'
+                     });*/
+                 },
+                 close: function(event, ui) {
+                     $(this).css({
+                         'border': '1px solid #dcdcdc'
+                     });
+                 }
+             });
+         }
+
+         function cssButtonLikeDropdownStyle(elementName) {
+             $('#' + elementName).css({
+                 /*'background':'none',*/
+                 'background-color': '#ffffff',
+                 'color': '#4a4a4a',
+                 'cursor': 'pointer',
+                 'display': 'block',
+                 'border': '1px solid #dcdcdc',
+                 'border-radius': '8px',
+                 'margin-top': '15px',
+                 'padding': '10px 12px',
+                 'font-size': '12px',
+                 'font-weight': 'normal'
+             });
+         }
+
+         function defaultInputFields() {
+             var typeCodePicklist = $('[id$=typeCode]')[0];
+             for (var i = 0; i < typeCodePicklist.length; i++) {
+                 var option = typeCodePicklist[i];
+                 typeCodePicklist.value = '{!typeCode}';
+                 fixTypeLabels();
+                 enableNextButton();
+             }
+             setCheckboxByString('#onMenu', '{!onMenu}');
+             setCheckboxByString('#newSet', '{!newSet}');
+             $('#priceInput').val('{!price}');
+             $('#notes').val('{!cloneNote}');
+             $('#brandDropdown').val('{!BrandNumber}');
+             $('#skuPkgSelect').val('{!pkgOrSkuCode}');
+             $('#startDate').val('{!startDate}');
+             $('#endDate').val('{!endDate}');
+             $('#resetStartDate').val('{!resetStartDate}');
+             $('#resetEndDate').val('{!resetEndDate}');
+             toggleRadiosDisabled(false);
+             $('#skuPkgSelect').prop('disabled', false);
+             $('#acctSearchBox').attr("data-id", '{!ultimateParentID}').val('{!ultimateParent}');
+             loadSubAccounts('{!ultimateParentID}', '{!ultimateParent}');
+             preCheckStoreSetFields();
+
+
+         }
+
+         function preselectCheckboxField(checkboxSelector, selectedOptionsString) {
+             //Determine which checkboxes should be pre-checked based on values coming from Salesforce
+             //by comparing each Option to SF's delimited String using indexOf.
+             $(checkboxSelector).multiselect("uncheckAll");
+             $(checkboxSelector).multiselect("widget").find(":checkbox").each(function() {
+                 var currentOption = $(this).val();
+                 if (selectedOptionsString.indexOf(currentOption) !== -1 && this.checked === false) {
+                     this.click();
+                 }
+             });
+         }
+
+         function preCheckStoreSetFields() {
+             //Check States
+             var states = '{!StatesDisplay}';
+             var p = preselectCheckboxField('#stateDropdown', states);
+
+
+             var subs = '{!SubAccountsDisplay}';
+             var mGroups = '{!MarketingGroupsDisplay}';
+             var reportTos = '{!ReportTosDisplay}';
+
+
+             //Figure out which field has values in it. show that one, hide the others. And pre-select the correct checkboxes.
+             //The Click handler is invoked (which hides/shows appropriately)
+             if (subs.length > 0 && subs !== 'None') {
+
+                 $('#acctAndSub').click();
+                 preselectCheckboxField("#subAccountSelect", subs);
+             } else if (mGroups.length > 0 && mGroups !== 'None') {
+                 $('#mktGrpCD').click();
+                 preselectCheckboxField("#mktGrpSelect", mGroups);
+             } else if (reportTos.length > 0 && reportTos !== 'None') {
+                 $('#rptToCD').click();
+                 preselectCheckboxField("#rptToCodeSelect", reportTos);
+             } else {
+                 //Default to Sub Accounts being shown in case no Store Set fields are populated.
+                 $('#acctAndSub').click();
+             }
+         }
+
+         function setCheckboxByString(checkboxSelector, yesOrNoString) {
+             var chkField = $(checkboxSelector);
+             if (yesOrNoString === 'Yes') {
+                 chkField.prop('checked', true);
+             } else {
+                 chkField.prop('checked', false);
+             }
+         }
+
+         function fixTypeLabels() {
+             // When picklist loads, fix labels
+             var typeCodePicklist = $('[id$=typeCode]')[0];
+             for (var i = 0; i < typeCodePicklist.length; i++) {
+                 var option = typeCodePicklist[i];
+
+                 if (option.innerText == 'BM') {
+
+                     option.label = 'Brand Mandated';
+                 }
+                 if (option.innerText == 'HH') {
+                     option.label = 'Happy Hour';
+                 }
+                 if (option.innerText == 'CM') {
+                     option.label = 'Corporate Mandate';
+                 }
+                 if (option.innerText == 'NA') {
+                     option.label = 'Not Applicable';
+                 }
+                 if (option.innerText == 'OS') {
+                     option.label = 'Authorized - Optional (Sell-In)';
+                 }
+                 if (option.innerText == 'PA') {
+                     option.label = 'Pending Authorization';
+                 }
+                 if (option.innerText == 'PN') {
+                     option.label = 'Presented - Not Authorized';
+                 }
+                 if (option.innerText == 'SP') {
+                     option.label = 'Authorized - Select Planogram';
+                 }
+                 if (option.innerText == 'LP') {
+                     option.label = 'Every Day Low Price';
+                 }
+                 if (option.innerText == 'LT') {
+                     option.label = 'Limited Time Only (LTO)';
+                 }
+                 if (option.innerText == 'BE') {
+                     option.label = 'Beer of the Month';
+                 }
+
+             }
+
+         }
+
+         function enableNextButton() {
+             var typeCodePicklist = $('[id$=typeCode]')[0];
+             for (var i = 0; i < typeCodePicklist.length; i++) {
+                 var option = typeCodePicklist[i];
+
+                 if (typeCodePicklist.value == '') {
+                     toggleNextButton(true);
+                 } else {
+                     toggleNextButton(false);
+                 }
+             }
+         }
+
+
+
+
+         document.getElementById('addAllParentStores').onchange = function() {
+             document.getElementById('selectionCriteria').style.display = this.checked ? 'none' : 'inline-block';
+             clearMultiselect();
+         };
+
+
+
+         function next() {
+             if (currentWizardStep === 1) {
+                 showStepTwo();
+                 currentWizardStep = 2;
+
+             } else if (currentWizardStep === 2) {
+                 showStepThree();
+                 currentWizardStep = 3;
+
+             }
+         }
+
+         function back() {
+             if (currentWizardStep === 3) {
+                 showStepTwo();
+                 currentWizardStep = 2;
+
+             } else if (currentWizardStep === 2) {
+                 showStepOne()
+                 currentWizardStep = 1;
+             }
+
+         }
+
+         function cancel() {
+             $('#cancelModal').css({
+                 'display': 'block'
+             });
+         }
+
+         function cancelModal() {
+             $('#cancelModal').css({
+                 'display': 'none'
+             });
+         }
+
+
+
+         function cancelCollection() {
+             var rType = '{!recordtype}';
+             if (rType == 'Item Authorization') {
+                 window.location = '{!urlfor($Page.CBIUSItemAuthorizationSearch)}';
+             } else {
+                 window.location = '{!urlfor($Page.CBIUSFeatureSearch)}';
+             }
+         }
+
+         function showStepOne() {
+
+             $('#stepTwo').css({
+                 'display': 'none'
+             });
+             $('#stepThree').css({
+                 'display': 'none'
+             });
+             $('#nextButton').css({
+                 'display': 'initial',
+                 'Background-color': '#ffffff',
+                 'border': 'solid 2px #e8e8e8',
+                 'background': 'none',
+                 'width': '100px',
+                 'color': '#e8e8e8',
+                 'margin': '5px'
+             }).prop('disabled', true);
+
+             $('#doneButton').css({
+                 'display': 'none'
+             }).prop('disabled', true);
+             $('#stepOne').css({
+                 'display': 'initial'
+             });
+             $('#backButton').css({
+                 'display': 'none'
+             });
+             $("#title").html("Step 1 of 3");
+             enableNextButton();
+
+         }
+
+         function showStepTwo() {
+
+             $("#title").html("Step 2 of 3");
+             $('#stepOne').css({
+                 'display': 'none'
+             });
+             $('#stepTwo').css({
+                 'display': 'initial'
+             });
+             $('#nextButton').css({
+                 'display': 'initial',
+                 'Background-color': '#ffffff',
+                 'border': 'solid 2px #e8e8e8',
+                 'background': 'none',
+                 'width': '100px',
+                 'color': '#e8e8e8',
+                 'margin': '5px'
+             }).prop('disabled', true);
+             $('#backButton').css({
+                 'display': 'initial'
+             });
+             $('#stepThree').css({
+                 'display': 'none'
+             });
+             $('#doneButton').css({
+                 'display': 'none'
+             });
+
+
+             pageTwoValidation();
+         }
+
+         function showStepThree() {
+
+             $("#title").html("Step 3 of 3");
+             $('#stepOne').css({
+                 'display': 'none'
+             });
+             $('#stepTwo').css({
+                 'display': 'none'
+             });
+             $('#stepThree').css({
+                 'display': 'initial'
+             });
+             $('#nextButton').css({
+                 'display': 'none'
+             });
+             $('#doneButton').css({
+                 'display': 'initial',
+                 'Background-color': '#ffffff',
+                 'border': 'solid 2px #e8e8e8',
+                 'background': 'none',
+                 'width': '100px',
+                 'color': '#e8e8e8',
+                 'margin': '5px'
+             }).prop('disabled', true);
+             $('#backButton').css({
+                 'display': 'initial'
+             });
+
+             $('#subAccounts').css({
+                 'display': 'block'
+             });
+             $('#rptToCode').css({
+                 'display': 'none'
+             });
+             $('#mktGrp').css({
+                 'display': 'none'
+             });
+             $('#states').css({
+                 'display': 'block'
+             });
+             if (idForClone) {
+                toggleDoneButton(false);
+                preCheckStoreSetFields();
+             }
+         }
+
+         function storeSetTypeOnChange() {
+             var storeSetRadio = $("input[name=storeSetType]:checked").val();
+             $('#subAccountSelect').multiselect("uncheckAll");
+             $('#rptToCodeSelect').multiselect("uncheckAll");
+             $('#mktGrpSelect').multiselect("uncheckAll");
+             if (storeSetRadio == 'sub') {
+                 $('#subAccounts').css({
+                     'display': 'block'
+                 });
+                 $('#mktGrp').css({
+                     'display': 'none'
+                 });
+                 $('#rptToCode').css({
+                     'display': 'none'
+                 });
+             } else if (storeSetRadio == 'group') {
+                 $('#subAccounts').css({
+                     'display': 'none'
+                 });
+                 $('#mktGrp').css({
+                     'display': 'block'
+                 });
+                 $('#rptToCode').css({
+                     'display': 'none'
+                 });
+             } else {
+                 $('#subAccounts').css({
+                     'display': 'none'
+                 });
+                 $('#mktGrp').css({
+                     'display': 'none'
+                 });
+                 $('#rptToCode').css({
+                     'display': 'block'
+                 });
+             }
+
+         }
+
+
+         function makeDefaultOption() {
+             return '<option value="" selected>Please Select</option>';
+         }
+
+         function skuPgkRadioOnChange() {
+             clearDisableSKUPackage();
+             retrieveSkuPkgOptions();
+         }
+
+         function setCheckboxByString(checkboxSelector, yesOrNoString) {
+             var chkField = $(checkboxSelector);
+             if (yesOrNoString === 'Yes') {
+                 chkField.prop('checked', true);
+             } else {
+                 chkField.prop('checked', false);
+             }
+         }
+
+
+         function getValues() {
+
+             //Step one Values
+             var newSet = $('#newSet').prop('checked') === true ? 'Yes' : 'No';
+             var onMenu = $('#onMenu').prop('checked') === true ? 'Yes' : 'No';
+             var featurePrice = $('#priceInput').val();
+             var note = $('#notes').val();
+             //Step two Values
+             var brandCodeVal = $('#brandDropdown option:selected').val();
+             var pkgsku = $('#skuPkgSelect').val();
+             var pkgskuval = $("input[name=skuPkgRadio]:checked").val();
+             var startDate = $('#startDate').val();
+             var endDate = $('#endDate').val();
+             var resetStartDate = $('#resetStartDate').val();
+             var resetEndDate = $('#resetEndDate').val();
+             var masterPkgCode = '';
+             var masterSkuCode = '';
+
+             //Step Three Values
+             var ultimateAccount = parentAccountId;
+             var addAllParentAccounts = $('#addAllParentStores').prop('checked') === true ? 'True' : 'False';
+             var subAccountDescription = $('#subAccountSelect').multiselect("getChecked").map(function() {
+                 return this.value;
+             }).get();
+             var marketingGroup = $('#mktGrpSelect').multiselect("getChecked").map(function() {
+                 return this.value;
+             }).get();
+             var reportToCode = $('#rptToCodeSelect').multiselect("getChecked").map(function() {
+                 return this.value;
+             }).get();
+             var statesArray = $("#stateDropdown").multiselect("getChecked").map(function() {
+                 return this.value;
+             }).get();
+
+
+
+             if (pkgskuval == 'SKU') {
+                 masterSkuCode = pkgsku;
+             } else {
+                 masterPkgCode = pkgsku;
+             }
+
+             brandCode(newSet, onMenu, featurePrice, note, brandCodeVal, masterPkgCode, masterSkuCode, startDate, endDate, resetStartDate, resetEndDate, ultimateAccount,
+                 addAllParentAccounts, subAccountDescription.join('|'), marketingGroup.join('|'), reportToCode.join('|'), statesArray.join('|'));
+
+         }
+
+         function brandOnChange() {
+             var brandCodeVal = $('#brandDropdown option:selected').val();
+
+             if (!brandCodeVal) {
+                 toggleRadiosDisabled(true);
+             } else {
+                 toggleRadiosDisabled(false);
+             }
+             clearDisableSKUPackage();
+             retrieveSkuPkgOptions();
+
+         }
+
+         function toggleNextButton(isDisabled) {
+             if (isDisabled === true) {
+                 $('#nextButton').css({
+                     'display': 'initial',
+                     'Background-color': '#ffffff',
+                     'border': 'solid 2px #e8e8e8',
+                     'background': 'none',
+                     'width': '100px',
+                     'color': '#e8e8e8',
+                     'margin': '5px'
+                 }).prop('disabled', true);
+             } else {
+                 $('#nextButton').css({
+                     'display': 'initial',
+                     'Background-color': '#ffffff',
+                     'border': 'solid 2px #06A0DB',
+                     'background': 'none',
+                     'width': '100px',
+                     'color': '#06A0DB',
+                     'margin': '5px'
+                 }).prop('disabled', false);
+             }
+         }
+
+         function toggleDoneButton(isDisabled) {
+             if (isDisabled === true) {
+                 $('#doneButton').css({
+
+                     'Background-color': '#ffffff',
+                     'border': 'solid 2px #e8e8e8',
+                     'background': 'none',
+                     'width': '100px',
+                     'color': '#e8e8e8',
+                     'margin': '5px'
+                 }).prop('disabled', true);
+             } else {
+                 $('#doneButton').css({
+
+                     'Background-color': '#1ec68a',
+                     'border': 'solid 2px #1ec68a',
+                     'background': 'none',
+                     'width': '100px',
+                     'color': '#1ec68a',
+                     'margin': '5px'
+                 }).prop('disabled', false);
+             }
+         }
+
+         function toggleRadiosDisabled(isDisabled) {
+             if (isDisabled === true) {
+                 $("input[name=skuPkgRadio]").prop('disabled', 'disabled');
+                 $(".pkgSkuRadios").css({
+                     'color': '#aaa'
+                 });
+             } else {
+                 $("input[name=skuPkgRadio]").prop('disabled', false);
+                 $(".pkgSkuRadios").css({
+                     'color': '#000'
+                 });
+             }
+         }
+
+         function clearDisableSubAccounts() {
+             $('#subAccountSelect').empty().prop('disabled', 'disabled').html(makeDefaultOption());
+         }
+
+         function clearDisableSKUPackage() {
+             $('#skuPkgSelect').empty().prop('disabled', 'disabled').html(makeDefaultOption());
+         }
+
+         function loadSubAccounts(id, value) {
+             parentAccountId = id;
+
+             if (id == null) {
+                 clearDisableSubAccounts();
+                 toggleDoneButton(true);
+
+             } else {
+
+                 retrieveAccountsById(id);
+                 toggleDoneButton(false);
+
+             }
+        }
+
+             function populatedMultichecbox(options, selectElementName) {
+                 var optionsHTML = "";
+                 if (options.length > 0) {
+                     $.each(options, function(i, r) {
+                         optionsHTML += '<option value="' + r + '">' + r + '</option>';
+                     });
+                     //Call remotae ca
+                     //store all 3 arrays into javascript
+                     $('#' + selectElementName).empty().prop('disabled', false).html(optionsHTML);
+                     $('#' + selectElementName).multiselect('destroy');
+
+                     createMultiSelectBoxes('#' + selectElementName);
+                     cssButtonLikeDropdownStyle(selectElementName + '_ms');
+
+                 } else {
+                     console.log('no subaccounts found');
+                     clearDisableSubAccounts();
+                 }
+
+             }
+
+             function retrieveAccountsById(id) {
+                 Visualforce.remoting.Manager.invokeAction(
+                     '{!$RemoteAction.CBIUSCollectionsUtility.RetrieveAccountHierarchy}',
+                     id,
+                     function(result, event) {
+                         if (event.status) {
+
+                             var mGroupsArray = result.MarketingGroups;
+                             var subAccountsArray = result.SubAccounts;
+                             var reportToArray = result.ReportToCodes;
+
+                             populatedMultichecbox(subAccountsArray, 'subAccountSelect');
+                             populatedMultichecbox(mGroupsArray, 'mktGrpSelect');
+                             populatedMultichecbox(reportToArray, 'rptToCodeSelect');
+
+
+                         } else {
+                             // TODO: deal with error
+                             clearDisableSubAccounts();
+                             alert('Callout error: ' + event.message);
+                         }
+                     }, {
+                         escape: false
+                     }
+                 );
+             }
+
+             function retrieveSkuPkgOptions() {
+                 var brandCodeVal = $('#brandDropdown option:selected').val();
+                 var skuPkgVal = $("input[name=skuPkgRadio]:checked").val();
+                 if (!brandCodeVal) {
+                     return;
+                 }
+                 if (!skuPkgVal) {
+                     return;
+                 }
+                 Visualforce.remoting.Manager.invokeAction(
+                     '{!$RemoteAction.CBIUSCollectionsUtility.RetrieveSkusOrPackages}',
+                     brandCodeVal,
+                     skuPkgVal,
+                     function(result, event) {
+                         if (event.status) {
+                             var optionsHTML = makeDefaultOption();
+                             if (result.length > 0) {
+                                 $.each(result, function(i, r) {
+                                     optionsHTML += '<option value="' + r.OptionId + '">' + r.OptionLabel + '</option>';
+                                 });
+                                 $('#skuPkgSelect').empty().prop('disabled', false).html(optionsHTML);
+                             } else {
+                                 console.log('no Sku or Pkgs found');
+                                 clearDisableSKUPackage();
+                             }
+                         } else {
+                             // TODO: deal with error
+                             clearDisableSKUPackage();
+                             alert('Callout error: ' + event.message);
+                         }
+                     }, {
+                         escape: false
+                     }
+                 );
+             }
+             return {
+                 Next: next,
+                 Back: back,
+                 BrandOnChange: brandOnChange,
+                 SkuPgkRadioOnChange: skuPgkRadioOnChange,
+                 LoadSubAccounts: loadSubAccounts,
+                 GetValues: getValues,
+                 EnableNextButton: enableNextButton,
+                 Cancel: cancel,
+                 CancelModal: cancelModal,
+                 CancelCollection: cancelCollection,
+                 PageTwoValidation: pageTwoValidation,
+                 StoreSetTypeOnChange: storeSetTypeOnChange
+             };
+
+         }();
+        //Google Analytics - self-executing
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', '{!GoogleAnalyticsCode}', 'auto');
+      ga('send', 'pageview');
+    </script>
+</apex:component>

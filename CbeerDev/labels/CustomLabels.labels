@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>Google_Analytics_Code</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Google Analytics Code</shortDescription>
+        <value>UA-77300343-4</value>
+    </labels>
+    <labels>
+        <fullName>Invalid_Brand_Code</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Invalid Brand Code</shortDescription>
+        <value>This Brand Code is Invalid</value>
+    </labels>
+    <labels>
+        <fullName>Invalid_Master_Package_Code</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Invalid Master Package Code</shortDescription>
+        <value>This Master Package Code is Invalid</value>
+    </labels>
+    <labels>
+        <fullName>Invalid_Master_SKU_Code</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Invalid Master SKU Code</shortDescription>
+        <value>This Master SKU Code is Invalid</value>
+    </labels>
+    <labels>
+        <fullName>Invalid_Retailer_UPC</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Invalid Retailer UPC</shortDescription>
+        <value>This Retailer UPC is Invalid</value>
+    </labels>
+</CustomLabels>

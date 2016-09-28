@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>CancelEdit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>SaveEdit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <allowInChatterGroups>false</allowInChatterGroups>
+    <compactLayoutAssignment>SYSTEM</compactLayoutAssignment>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Custom Item Authorization &amp; Feature object to create and store Item Authorizations and Features that will be used by other connected sources</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
+    <fields>
+        <fullName>AB_SELL_FLG__c</fullName>
+        <externalId>false</externalId>
+        <label>AB Selling</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Add_all_Parent_Account_stores__c</fullName>
+        <defaultValue>false</defaultValue>
+        <description>When checkbox is checked, all child Accounts under Ultimate Parent Account will be automatically added as junction objects to the Item Auth/Feature</description>
+        <externalId>false</externalId>
+        <label>Add all Parent Account stores</label>
+        <trackTrending>false</trackTrending>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>BRAND_CD__c</fullName>
+        <externalId>false</externalId>
+        <label>Brand Code</label>
+        <length>255</length>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Deletion__c</fullName>
+        <defaultValue>false</defaultValue>
+        <description>Indicates if a record has been inactive for 1 year and is scheduled for deletion</description>
+        <externalId>false</externalId>
+        <label>Deletion</label>
+        <trackTrending>false</trackTrending>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>FEATURE_PRICE__c</fullName>
+        <externalId>false</externalId>
+        <label>Feature Price</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>2</scale>
+        <trackTrending>false</trackTrending>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>GTIN_NO__c</fullName>
+        <externalId>false</externalId>
+        <label>Retailer UPC</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>MASTER_PKG_CD__c</fullName>
+        <externalId>false</externalId>
+        <label>Master Package Code</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>MASTER_SKU_CD__c</fullName>
+        <externalId>false</externalId>
+        <label>Master SKU Code</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>MILLERCOORS_SELL_FLG__c</fullName>
+        <externalId>false</externalId>
+        <label>Miller Coors Selling</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Marketing_Groups__c</fullName>
+        <externalId>false</externalId>
+        <label>Marketing Groups</label>
+        <length>131072</length>
+        <trackTrending>false</trackTrending>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
+    <fields>
+        <fullName>NEW_SET_FLG__c</fullName>
+        <externalId>false</externalId>
+        <label>New Set</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>NOTES_TXT__c</fullName>
+        <externalId>false</externalId>
+        <label>Additional Notes</label>
+        <length>290</length>
+        <trackTrending>false</trackTrending>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
+    <fields>
+        <fullName>NO_OF_DOORS__c</fullName>
+        <externalId>false</externalId>
+        <label>Number of Doors</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>2</scale>
+        <trackTrending>false</trackTrending>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>ON_MENU_FLG__c</fullName>
+        <externalId>false</externalId>
+        <label>On Menu</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>PLACEMENT__c</fullName>
+        <externalId>false</externalId>
+        <label>Placement</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Doors</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Open Air</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Cave</fullName>
+                <default>false</default>
+            </picklistValues>
+            <restrictedPicklist>true</restrictedPicklist>
+            <sorted>false</sorted>
+        </picklist>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>RESET_PERIOD_BEGIN_DT_ID__c</fullName>
+        <externalId>false</externalId>
+        <label>Reset Period Start</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>RESET_PERIOD_END_DT_ID__c</fullName>
+        <externalId>false</externalId>
+        <label>Reset Period End</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>RecordType__c</fullName>
+        <externalId>false</externalId>
+        <formula>RecordType.DeveloperName</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>RecordType</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Report_To_Codes__c</fullName>
+        <externalId>false</externalId>
+        <label>Report To Codes</label>
+        <length>131072</length>
+        <trackTrending>false</trackTrending>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
+    <fields>
+        <fullName>SET_PERIOD_BEGIN_DT_ID__c</fullName>
+        <externalId>false</externalId>
+        <label>Set Period Start</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>SET_PERIOD_END_DT_ID__c</fullName>
+        <externalId>false</externalId>
+        <label>Set Period End</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Date</type>
+    </fields>
+    <fields>
+        <fullName>SET_TYPE__c</fullName>
+        <externalId>false</externalId>
+        <label>Type of Set</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Cold</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Warm</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>States__c</fullName>
+        <externalId>false</externalId>
+        <label>States</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>Status__c</fullName>
+        <description>Defines status of Item Authorization or Feature</description>
+        <externalId>false</externalId>
+        <label>Status</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Active</fullName>
+                <default>true</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Inactive</fullName>
+                <default>false</default>
+            </picklistValues>
+            <restrictedPicklist>true</restrictedPicklist>
+            <sorted>false</sorted>
+        </picklist>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Sub_Accounts__c</fullName>
+        <externalId>false</externalId>
+        <label>Sub Accounts</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>TextArea</type>
+    </fields>
+    <fields>
+        <fullName>TDLinx_Store_Code__c</fullName>
+        <externalId>false</externalId>
+        <formula>Ultimate_Parent__r.Store_Code__c</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>TDLinx Store Code</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>TD_Linx_Code__c</fullName>
+        <externalId>false</externalId>
+        <label>TD Linx Code</label>
+        <length>255</length>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>TYPE_DSC__c</fullName>
+        <externalId>false</externalId>
+        <formula>IF(AND(ISPICKVAL(Type_CD__c, &quot;BE&quot;), RecordType.DeveloperName = &quot;Feature&quot;), &quot;Beer of the Month&quot;,
+   IF(AND(ISPICKVAL(Type_CD__c, &quot;HH&quot;),RecordType.DeveloperName = &quot;Feature&quot;), &quot;Happy Hour&quot;,
+      IF(AND(ISPICKVAL(Type_CD__c, &quot;LP&quot;),RecordType.DeveloperName = &quot;Feature&quot;), &quot;Every Day Low Price&quot;,
+         IF(AND(ISPICKVAL(Type_CD__c, &quot;LT&quot;),RecordType.DeveloperName = &quot;Feature&quot;), &quot;Limited Time Only (LTO)&quot;,
+            IF(AND(ISPICKVAL(Type_CD__c, &quot;be&quot;),RecordType.DeveloperName = &quot;Feature&quot;), &quot;Beer of the Month&quot;,
+               IF(AND(ISPICKVAL(Type_CD__c, &quot;hh&quot;),RecordType.DeveloperName = &quot;Feature&quot;), &quot;Happy Hour&quot;,
+                  IF(AND(ISPICKVAL(Type_CD__c, &quot;lp&quot;),RecordType.DeveloperName = &quot;Feature&quot;), &quot;Every Day Low Price&quot;,
+                     IF(AND(ISPICKVAL(Type_CD__c, &quot;lt&quot;),RecordType.DeveloperName = &quot;Feature&quot;), &quot;Limited Time Only (LTO)&quot;,
+IF(AND(ISPICKVAL(Type_CD__c, &quot;OS&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Authorized - Optional (Sell-In)&quot;,
+   IF(AND(ISPICKVAL(Type_CD__c, &quot;SP&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Authorized - Select Planogram&quot;,
+      IF(AND(ISPICKVAL(Type_CD__c, &quot;BM&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Brand Mandated - Any Format&quot;,
+         IF(AND(ISPICKVAL(Type_CD__c, &quot;CM&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Corporate Mandate&quot;,
+            IF(AND(ISPICKVAL(Type_CD__c, &quot;NA&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Not Applicable&quot;,
+               IF(AND(ISPICKVAL(Type_CD__c,&quot;PA&quot;), RecordType.DeveloperName = &quot;Item_Authorization&quot;),&quot;Pending Authorization&quot;,
+                  IF(AND(ISPICKVAL(Type_CD__c, &quot;PN&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Presented - Not Authorized&quot;,
+                     IF(AND(ISPICKVAL(Type_CD__c, &quot;TB&quot;), RecordType.DeveloperName = &quot;Item_Authorization&quot;),&quot;To be Presented&quot;,
+                        IF(AND(ISPICKVAL(Type_CD__c, &quot;os&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Authorized - Optional (Sell-In)&quot;,
+                           IF(AND(ISPICKVAL(Type_CD__c, &quot;sp&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Authorized - Select Planogram&quot;,
+                             IF(AND(ISPICKVAL(Type_CD__c, &quot;bm&quot;), RecordType.DeveloperName = &quot;Item_Authorization&quot;),&quot;Brand Mandated - Any Format&quot;,
+                                 IF(AND(ISPICKVAL(Type_CD__c, &quot;cm&quot;), RecordType.DeveloperName = &quot;Item_Authorization&quot;),&quot;Corporate Mandate&quot;,
+                                    IF(AND(ISPICKVAL(Type_CD__c, &quot;na&quot;), RecordType.DeveloperName = &quot;Item_Authorization&quot;),&quot;Not Applicable&quot;,
+                                      IF(AND(ISPICKVAL(Type_CD__c, &quot;pa&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Pending Authorization&quot;,
+                                               IF(AND(ISPICKVAL(Type_CD__c, &quot;pn&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;Presented - Not Authorized&quot;,
+                                                       IF(AND(ISPICKVAL(Type_CD__c, &quot;tb&quot;),RecordType.DeveloperName = &quot;Item_Authorization&quot;), &quot;To be Presented&quot;, null))))))))))))))))))))))))</formula>
+        <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+        <label>Type Description</label>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Type_CD__c</fullName>
+        <externalId>false</externalId>
+        <label>Type Code</label>
+        <picklist>
+            <picklistValues>
+                <fullName>BM</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>CM</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>NA</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>OS</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>PA</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>PN</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>SP</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>HH</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>LP</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>LT</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>BE</fullName>
+                <default>false</default>
+            </picklistValues>
+            <restrictedPicklist>true</restrictedPicklist>
+            <sorted>false</sorted>
+        </picklist>
+        <required>false</required>
+        <trackTrending>false</trackTrending>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Ultimate_Parent__c</fullName>
+        <deleteConstraint>Restrict</deleteConstraint>
+        <externalId>false</externalId>
+        <label>Ultimate Parent</label>
+        <referenceTo>Account</referenceTo>
+        <relationshipName>CBI_US_Collections</relationshipName>
+        <required>true</required>
+        <trackTrending>false</trackTrending>
+        <type>Lookup</type>
+    </fields>
+    <label>CBBD US Item Authorization &amp; Feature</label>
+    <listViews>
+        <fullName>All</fullName>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <nameField>
+        <displayFormat>CFA -{0000}</displayFormat>
+        <label>CBBD US Item Authorization &amp; Feature</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>CBBD US Item Authorizations &amp; Features</pluralLabel>
+    <recordTypes>
+        <fullName>Feature</fullName>
+        <active>true</active>
+        <description>Record Type for Feature</description>
+        <label>Feature</label>
+        <picklistValues>
+            <picklist>PLACEMENT__c</picklist>
+            <values>
+                <fullName>Cave</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Doors</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Open Air</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>SET_TYPE__c</picklist>
+            <values>
+                <fullName>Cold</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Warm</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Status__c</picklist>
+            <values>
+                <fullName>Active</fullName>
+                <default>true</default>
+            </values>
+            <values>
+                <fullName>Inactive</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type_CD__c</picklist>
+            <values>
+                <fullName>BE</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>HH</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>LP</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>LT</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <recordTypes>
+        <fullName>Item_Authorization</fullName>
+        <active>true</active>
+        <description>Record Type For Item Authorizations</description>
+        <label>Item Authorization</label>
+        <picklistValues>
+            <picklist>PLACEMENT__c</picklist>
+            <values>
+                <fullName>Cave</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Doors</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Open Air</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>SET_TYPE__c</picklist>
+            <values>
+                <fullName>Cold</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>Warm</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Status__c</picklist>
+            <values>
+                <fullName>Active</fullName>
+                <default>true</default>
+            </values>
+            <values>
+                <fullName>Inactive</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+        <picklistValues>
+            <picklist>Type_CD__c</picklist>
+            <values>
+                <fullName>BM</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>CM</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>NA</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>OS</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>PA</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>PN</fullName>
+                <default>false</default>
+            </values>
+            <values>
+                <fullName>SP</fullName>
+                <default>false</default>
+            </values>
+        </picklistValues>
+    </recordTypes>
+    <searchLayouts/>
+    <sharingModel>ReadWrite</sharingModel>
+    <validationRules>
+        <fullName>Parent_Account_Validation</fullName>
+        <active>true</active>
+        <description>Ensures that the lookup to the parent account will only apply to the parentid on the account object</description>
+        <errorConditionFormula>Ultimate_Parent__r.Est_un_compte_parent__c  = false</errorConditionFormula>
+        <errorDisplayField>Ultimate_Parent__c</errorDisplayField>
+        <errorMessage>The Account entered is not a Parent Account, Please try again.</errorMessage>
+    </validationRules>
+</CustomObject>

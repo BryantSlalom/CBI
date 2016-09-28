@@ -1,0 +1,7 @@
+<apex:page standardstylesheets="true" showheader="true">
+    <c:CBIUSCollectionsSearch mycollectiontype="IA"
+                              mypagetitle="Search for Authorizations"
+                              mynewbuttontitle="New Authorization"
+                              myemptysearchresults="No Item Authorizations were found. Please edit search criteria and try again."
+                              myeditlinkcolumnheader="AUTHORIZATION" />
+</apex:page>
