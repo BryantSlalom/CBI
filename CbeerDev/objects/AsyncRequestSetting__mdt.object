@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Configuration for AsyncRequestsQueueable class.</description>
+    <fields>
+        <fullName>AppEnabled__c</fullName>
+        <defaultValue>true</defaultValue>
+        <description>On/Off switch to prevent from accidental endless chaining</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>AppEnabled</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>AsyncType__c</fullName>
+        <description>Must match AsyncRequest__c.AsyncType__c picklist values.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>AsyncType</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Store Set Automation For Item</fullName>
+                <default>true</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Default</fullName>
+                <default>false</default>
+            </picklistValues>
+            <restrictedPicklist>true</restrictedPicklist>
+            <sorted>false</sorted>
+        </picklist>
+        <required>true</required>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>DMLRowsThreshold__c</fullName>
+        <defaultValue>0.60</defaultValue>
+        <description>The maximum limit usage percentage for DML Rows (plus PadDMLRows__c) allowed.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>Must be in decimal form. 60% should be entered as 0.60</inlineHelpText>
+        <label>DMLRowsThreshold</label>
+        <precision>3</precision>
+        <required>true</required>
+        <scale>2</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>DMLStatementsThreshold__c</fullName>
+        <defaultValue>0.60</defaultValue>
+        <description>The maximum limit usage percentage for DML Statements (plus PadDMLStatements__c) allowed.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>Must be in decimal form. 60% should be entered as 0.60</inlineHelpText>
+        <label>DMLStatementsThreshold</label>
+        <precision>3</precision>
+        <required>true</required>
+        <scale>2</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Max_Params_to_Process__c</fullName>
+        <defaultValue>50</defaultValue>
+        <description>Determines how many AuthFeat IDs get processed at a time from Params__c</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>Max Params to Process</label>
+        <precision>18</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>PadDMLRows__c</fullName>
+        <defaultValue>1000</defaultValue>
+        <description>PadDMLRowsallows you to add a buffer to existing DML Rows Limits and pending DML Rows you are tracking prior to comparing against DMLRowsThreshold.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>PadDMLRows</label>
+        <precision>18</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>PadDMLStatements__c</fullName>
+        <defaultValue>15</defaultValue>
+        <description>PadDMLStatements allows you to add a buffer to existing DML Statements used and pending DML Statements you are tracking prior to comparing against DMLStatementsThreshold.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>PadDMLStatements</label>
+        <precision>18</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>PadSOQLQueries__c</fullName>
+        <defaultValue>20</defaultValue>
+        <description>PadSOQLQueries allows you to add a buffer to existing SOQLs issued prior to comparing against SOQLQueriesThreshold.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>PadSOQLQueries</label>
+        <precision>18</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>PadSOQLRows__c</fullName>
+        <defaultValue>5000</defaultValue>
+        <description>PadSOQLRows allows you to add a buffer to existing SOQL Rows retrieved prior to comparing against SOQLRowsThreshold.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>PadSOQLRows</label>
+        <precision>18</precision>
+        <required>true</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>SOQLQueriesThreshold__c</fullName>
+        <defaultValue>0.60</defaultValue>
+        <description>The maximum limit usage percentage for SOQL queries (plus PadSOQLQueries__c) allowed.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <label>SOQLQueriesThreshold</label>
+        <precision>3</precision>
+        <required>true</required>
+        <scale>2</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>SOQLRowsThreshold__c</fullName>
+        <defaultValue>0.60</defaultValue>
+        <description>The maximum limit usage percentage for SOQL Rows returned (plus PadSOQLRows__c) allowed.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>Must be in decimal form. 60% should be entered as 0.60</inlineHelpText>
+        <label>SOQLRowsThreshold</label>
+        <precision>3</precision>
+        <required>true</required>
+        <scale>2</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <label>AsyncRequest Setting</label>
+    <pluralLabel>AsyncRequest Settings</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

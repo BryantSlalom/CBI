@@ -1,0 +1,5 @@
+<apex:page standardstylesheets="true" showheader="true" id="newItemAuth"  >
+
+    <c:CBIUSCollectionsCreate title="Item Authorization" detailtitle="Authorization" recordtype="Item Authorization"  />
+                              
+</apex:page>

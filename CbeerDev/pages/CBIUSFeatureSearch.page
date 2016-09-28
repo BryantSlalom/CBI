@@ -1,0 +1,7 @@
+<apex:page standardstylesheets="true" showheader="true">
+    <c:CBIUSCollectionsSearch mycollectiontype="F"
+                              mypagetitle="Search for Features"
+                              mynewbuttontitle="New Feature"
+                              myemptysearchresults="No Features were found. Please edit search criteria and try again."
+                              myeditlinkcolumnheader="FEATURE" />
+</apex:page>

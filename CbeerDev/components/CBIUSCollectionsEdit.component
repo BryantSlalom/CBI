@@ -1,0 +1,916 @@
+<apex:component controller="CBIUSCollectionsEditCtrl" extensions="CBIUSCollectionsUtility" allowdml="true">
+    <!-- Component Attributes -->
+    <apex:attribute name="MyEmptyStoreResults" description="Message for no stores results found." type="String" required=" true" />
+    <!-- JQUERY -->
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/js/jquery-2.2.4.min.js')}" />
+    <!-- JQUERY UI - needed for access to .widget() to support MultiSelectCheckboxes. Adding JqueryUI CSS breaks our PatternLib css for DatePicker.
+         so we manually added required MultiSelectCheckbox CSS inline in this page. -->
+    <apex:includescript value="{!URLFOR($Resource.JQueryUIFull, '/jquery-ui-1.12.0/jquery-ui.min.js')}" />
+    <!-- PatternLib is our UX/functionality specific for these pages. -->
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/lib/codemirror.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/js/jquery.tagsinput.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.PatternLib, '/pattern-library/mode/javascript/javascript.js')}" />
+    <!-- MultiSelect Checkboxes -->
+    <apex:includescript value="{!URLFOR($Resource.MultiSelect2, '/jquery-ui-multiselect-widget-master/src/jquery.multiselect.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.MultiSelect2, '/jquery-ui-multiselect-widget-master/jquery.multiselect.css')}" />
+    <!-- DataTables plugin -->
+    <apex:includescript value="{!URLFOR($Resource.DataTablesFull, '/DataTables-1.10.12/media/js/jquery.dataTables.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.DataTablesFull, '/DataTables-1.10.12/media/css/jquery.dataTables.min.css')}" />
+    <!-- PatternLib is our UX/functionality specific for these pages.
+         Include them last so they take precedence and override others. -->
+    <apex:stylesheet value="{!URLFOR($Resource.PatternLib, '/pattern-library/lib/codemirror.css')}" />
+    <!--<apex:stylesheet value="{!URLFOR($Resource.PatternLib, '/pattern-library/css/jquery.tagsinput.css')}" />-->
+    <apex:stylesheet value="{!URLFOR($Resource.PatternLib, '/pattern-library/css/style.css')}" />
+    <style>
+        .ui-tooltip {
+            width: 500px;
+            border: 1px solid #06a0db;
+            padding: 12px;
+            cursor: default;
+        }
+
+        .btn {
+            margin: 5px !important;
+        }
+
+        td img {
+            display: block;
+        }
+    </style>
+
+    <apex:form id="editForm">
+        <div class="wrapper">
+            <div class="form_cntnr">
+                <br />
+                <br />
+                <h1 class="h1title">{!Wrapper.Item.RecordType.Name}&nbsp;<span style="color: #9b9b9b; ">{!Wrapper.Item.Name}</span></h1>
+                <button class="btn right action primary" id="editButton" type="button" style="border: none; background: none; background-color: #06A0DB; color: #ffffff; margin: 5px;" onclick="CollectionsEdit.ShowEditForm()">Edit</button>
+                <button class="btn right primary support" id="cloneButton" type="button" style="background:none; margin:5px;" onclick="createSimilar();">Create Similar</button>
+                <button class="btn right support negative" id="endButton" type="button" style="background: none; margin: 5px;" onclick="EndItemToday()">End {!Wrapper.Item.RecordType.Name}</button>
+                <button class="btn right action final" id="saveButton" type="button" onclick="CollectionsEdit.DoSave()" style="margin: 5px; background: none; border: none; background-color: #1ec68a; color: #ffffff; display: none;">Save</button>
+                
+                <button class="btn right support negative" id="cancelEditButton" onclick="CollectionsEdit.CancelEdit()" type="button" style="margin: 5px; background: none; display: none;">Cancel</button>
+                <br />
+                <div class="styleLine">&nbsp;</div>
+                <apex:outputpanel id="errorMessageBlock" styleclass="error">
+                    <apex:messages styleclass="error apexMsgs" />
+                </apex:outputpanel>
+                <br />
+                <div class="detailForm" id="detailModeDiv">
+                    <table style="width:100%;">
+                        <tr style="width:100%;">
+                            <td style="width:70%; vertical-align:top;">
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Parent Account" styleclass="h2titleLabel" /><br />
+                                    <div class="h2titleDetail" id="newSetDetail">{!Wrapper.Item.Ultimate_Parent__r.Name}</div>
+                                </div>
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Brand" styleclass="h2titleLabel" /><br />
+                                    <div id="pkgSkuDetail" class="h2titleDetail">{!BrandDisplay}</div>
+                                </div>
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Package/SKU" styleclass="h2titleLabel" /><br />
+                                    <div id="pkgSkuDetail" class="h2titleDetail">{!PkgSkuDisplay}</div>
+                                </div>
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Type" styleclass="h2titleLabel" /><br />
+                                    <div class="h2titleDetail" id="typeDetail">{!Wrapper.Item.TYPE_DSC__c}</div>
+                                </div>
+                            </td>
+                            <td rowspan="3" style="vertical-align:top;">
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Addtional Notes" styleclass="h2titleLabel" /><br />
+                                    <div class="h2titleDetail" id="notesDetail">{!Wrapper.Item.NOTES_TXT__c}</div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 70%; vertical-align: top;">
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Start Date" styleclass="h2titleLabel" /><br />
+                                    <div class="h2titleDetail" id="startDateDetail">{!Wrapper.StartDate}</div>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="End Date" styleclass="h2titleLabel" />
+                                    <div class="h2titleDetail" id="endDateDetail">{!Wrapper.EndDate}</div>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Reset Start" styleclass="h2titleLabel" />
+                                    <div class="h2titleDetail" id="resetStartDateDetail">{!Wrapper.ResetStartDate}</div>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Reset End" styleclass="h2titleLabel" />
+                                    <div class="h2titleDetail" id="resetEndDateDetail">{!Wrapper.ResetEndDate}</div>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputpanel rendered="{!Wrapper.Item.RecordType.DeveloperName == 'Feature'}">
+                                        <apex:outputlabel value="Feature Price" styleclass="h2titleLabel" />
+                                        <div class="h2titleDetail" id="priceDetail">{!Wrapper.Price}</div>
+                                    </apex:outputpanel>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputpanel rendered="{!Wrapper.Item.RecordType.DeveloperName == 'Item_Authorization'}">
+                                        <apex:outputlabel value="New Set?" styleclass="h2titleLabel" /><br />
+                                        <div class="h2titleDetail" id="newSetDetail">{!Wrapper.NewSet}</div>
+                                    </apex:outputpanel>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="On Menu?" styleclass="h2titleLabel" /><br />
+                                    <div class="h2titleDetail" id="onMenuDetail">{!Wrapper.OnMenu}</div>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="width: 70%; vertical-align: top;">
+                                <div style="margin-left:7px; margin-bottom:15px;">
+                                    <input class="h2titleDetail" disabled="disabled" type="checkbox" name="addAllParentStores" onclick="" value="{!Wrapper.AddAllParentsDisplay}" id="addAllParentStores" />&nbsp;&nbsp;
+                                    <apex:outputlabel value="Apply {!Wrapper.Item.RecordType.Name} to all stores in this Parent Account" styleclass="h2titleLabel" />
+
+                                </div>
+                                <apex:outputpanel rendered="{!NOT(Wrapper.AddAllParentsDisplay == true)}">
+                                    <div class="rowOneIA">
+                                        <apex:outputlabel value="Sub Account(s)" styleclass="h2titleLabel" /><br />
+                                        <div class="h2titleDetail" id="newSetDetail">{!Wrapper.SubAccountsDisplay}</div>
+                                    </div>
+                                    <div class="rowOneIA">
+                                        <apex:outputlabel value="Marketing Group(s)" styleclass="h2titleLabel" /><br />
+                                        <div class="h2titleDetail" id="newSetDetail">{!Wrapper.MarketingGroupsDisplay}</div>
+                                    </div>
+                                    <div class="rowOneIA">
+                                        <apex:outputlabel value="Report To(s)" styleclass="h2titleLabel" /><br />
+                                        <div class="h2titleDetail" id="newSetDetail">{!Wrapper.ReportTosDisplay}</div>
+                                    </div>
+                                    <div class="rowOneIA">
+                                        <apex:outputlabel value="State(s)" styleclass="h2titleLabel" /><br />
+                                        <div class="h2titleDetail" id="newSetDetail">{!Wrapper.StatesDisplay}</div>
+                                    </div>
+                                </apex:outputpanel>
+
+                            </td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="editModeDiv" class="editForm" style="display: none; background-color: #808080;">
+                    <table style=" width:100%;">
+                        <tr style="width:100%;">
+                            <td colspan="2">
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Parent Account" styleclass="disabled" /><br />
+                                    <input style="width:200px;" class="disabled" disabled="disabled" id="accountId" value="{!Wrapper.Item.Ultimate_Parent__r.Name}" />
+                                </div>
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Brand" styleclass="disabled" /><br />
+                                    <input style="width:200px;" class="disabled" disabled="disabled" id="brandId" value="{!BrandDisplay}" />
+                                </div>
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Package/SKU" styleclass="disabled" /><br />
+                                    <input style="width:400px;" disabled="disabled" id="pkgSkuDetail" class="disabled" value="{!PkgSkuDisplay}" />
+                                </div>
+                                <div class="rowOneIA" style="display:inline-block;">
+                                    <apex:outputlabel value="Type" styleclass="disabled" /><br />
+                                    <input style="width:200px;" class="disabled" disabled="disabled" id="typeDetail" value="{!Wrapper.Item.TYPE_DSC__c}" />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Start Date" styleclass="disabled" /><br />
+                                    <input class="customdatepicker disabled" disabled="disabled" type="text" name="input" id="startDate" placeholder="MM/DD/YYYY" value="{!Wrapper.StartDate}" />
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="End Date" styleclass="" />
+                                    <input class="customdatepicker editForm" type="text" name="input" id="endDate" placeholder="MM/DD/YYYY" value="{!Wrapper.EndDate}" />
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Reset Start" styleclass="" />
+                                    <input class="customdatepicker editForm" type="text" name="input" id="resetStartDate" placeholder="MM/DD/YYYY" value="{!Wrapper.ResetStartDate}" />
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Reset End" styleclass="" />
+                                    <input class="customdatepicker editForm" type="text" name="input" id="resetEndDate" placeholder="MM/DD/YYYY" value="{!Wrapper.ResetEndDate}" />
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputpanel rendered="{!Wrapper.Item.RecordType.DeveloperName == 'Feature'}">
+                                        <apex:outputlabel value="Feature Price" styleclass="" />
+                                        <input id="priceInput" type="text" onclick="" style="width:100px;" value="{!Wrapper.Price}" />
+                                    </apex:outputpanel>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputpanel rendered="{!Wrapper.Item.RecordType.DeveloperName == 'Item_Authorization'}">
+                                        <apex:outputlabel value="New Set?" styleclass="" />
+                                        <input id="newSetCheckbox" type="checkbox" onclick="" value="{!Wrapper.NewSet}" />
+                                    </apex:outputpanel>
+                                </div>
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="On Menu?" styleclass="" />
+                                    <input id="onMenuCheckbox" type="checkbox" onclick="" value="{!Wrapper.OnMenu}" />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="70%">
+                                <div class="rowOneIA">
+                                    <div class="rowOneIA h3title" style="width:auto; margin-bottom:20px;">Store Set Criteria </div><span id="whatsThisTooltip" class="custom-anchor helptext" style="font:xx-small" title="Store Set Criteria forces the system to automatically Add/Remove Stores to an Item Authorization / Feature if the Store meets criteria. You can pick 1 or more Sub Accounts, Marketing Groups, or Report Tos, but you can't mix and match. Select States to narrow the Store Search even further.">What's this?</span>
+                                    <br />
+                                    <div style="margin-bottom:5px;">
+                                        <input class="h2titleDetail" type="checkbox" name="addAllParentStores" onclick="" value="{!Wrapper.AddAllParentsDisplay}" id="editAddAll" />&nbsp;&nbsp;
+                                        <apex:outputlabel value="Apply {!Wrapper.Item.RecordType.Name} to all stores in this Parent Account" styleclass="h2titleLabel" />
+                                    </div>
+
+                                </div>
+                                <br />
+                                <div class="rowOneIA" id="selectionCriteria">
+                                    <div style="margin-bottom:10px;">
+                                        <input type="radio" id="subAccountRadio" name="storeSetType" value="sub" onchange="CollectionsEdit.StoreSetOnChange()" />&nbsp;&nbsp;<label class="small inline">Sub Account(s)</label>
+                                        <input type="radio" id="groupRadio" name="storeSetType" value="group" onchange="CollectionsEdit.StoreSetOnChange()" />&nbsp;&nbsp;<label for="skuRadio" class="small inline">Marketing Group(s)</label>
+                                        <input type="radio" id="reportToRadio" name="storeSetType" value="report" onchange="CollectionsEdit.StoreSetOnChange()" />&nbsp;&nbsp;<label for="skuRadio" class="small inline">Report To(s)</label>
+                                    </div>
+                                    <div class="rowOneIA">
+                                        <label id="storeSetFieldLabel"></label><br />
+                                        <select multiple="multiple" class="multiselectCheckbox" name="dropdown" id="subAccountDropdown" style="width:400px;">
+                                            <apex:repeat value="{!Hierarchy.SubAccounts}" var="subaccount">
+                                                <option value="{!subaccount}">{!subaccount}</option>
+                                            </apex:repeat>
+                                        </select>
+                                        <select multiple="multiple" class="multiselectCheckbox" name="dropdown" id="marketingGroupDropdown" style="width: 400px;">
+                                            <apex:repeat value="{!Hierarchy.MarketingGroups}" var="mg">
+                                                <option value="{!mg}">{!mg}</option>
+                                            </apex:repeat>
+                                        </select>
+                                        <select multiple="multiple" class="multiselectCheckbox" name="dropdown" id="reportToDropdown" style="width: 400px;">
+                                            <apex:repeat value="{!Hierarchy.ReportToCodes}" var="rt">
+                                                <option value="{!rt}">{!rt}</option>
+                                            </apex:repeat>
+                                        </select>
+                                    </div>
+                                    <div class="rowOneIA">
+                                        <apex:outputlabel value="State(s)" styleclass="" />
+                                        <select multiple="multiple" class="multiselectCheckbox" name="dropdown" id="stateDropdown" style="width:150px;display:block;">
+                                            <apex:repeat value="{!States}" var="State">
+                                                <option value="{!State.Value}">{!State.Label}</option>
+                                            </apex:repeat>
+                                        </select>
+                                    </div>
+
+
+                                </div>
+                                <div class="rowOneIA">
+
+                                </div>
+                            </td>
+                            <td>
+                                <br />
+                                <div class="rowOneIA">
+                                    <apex:outputlabel value="Addtional Notes" styleclass="" />
+                                    <textarea rows="3" id="notesTextArea">{!Wrapper.Item.NOTES_TXT__c}</textarea>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <br />
+                </div>
+                
+                
+                <button class="btn right" type="button" id="addStoresButton" onclick="CollectionsEdit.ShowAddStoresModal()" style="float: right; margin: 5px; border:none; background: none; background-color: #f5a623; color: #ffffff;">Add Stores</button> <!--style="border:none; background:none; background-color:#f5a623; color:#ffffff;"-->
+                <button class="btn right primary support" id="refreshButton" type="button" onclick="CollectionsEdit.RefreshStores()" style="background:none; margin:5px;">Refresh Stores</button>
+                <button type="button" id="massDeleteButton" class="btn support negative right" onclick="CollectionsEdit.MassDelete()" style="margin: 5px; background: none; ">Remove Selected</button> <!--background-color: #ffffff; color: #06A0DB;-->
+                <br />
+                <br />
+                <br />
+                <div id="searchResults">
+                    <div id="resultsTableDiv">
+                        <table class="custom-table stripe" id="searchResultsTable" style="width:100%;">
+                            <thead id="searchResultsTableHeader">
+                                <tr style="height:55px;">
+                                    <th><input id="searchResultsTableHeaderCheckAll" type="checkbox" value="" onclick="CollectionsEdit.ToggleAllCheckedStores()" /></th>
+                                    <th style="min-width:250px;">TDLINX<br />SUB CODE</th>
+                                    <th style="min-width:100px;">STORE<br />NUMBER</th>
+                                    <th style="min-width:100px;">STORE NAME</th>
+                                    <th>ADDRESS</th>
+                                    <th>CITY</th>
+                                    <th>STATE</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="searchResultsTableBody"></tbody>
+                            <tfoot id="searchResultsTableFooter">
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="modals">
+                <div id="addStoresModal" class="modal" style="display:none;">
+                    <div class="content sm-modal">
+                        <h1 style="width:500px;border-bottom:none;">Add Store(s) to <b>{!Wrapper.Item.RecordType.Name}&nbsp;<span style="color: #9b9b9b; ">{!Wrapper.Item.Name}</span></b></h1>
+                        <div style="width: 500px; border-bottom: 2px solid #dcdcdc;">&nbsp;</div>
+                        <p></p>
+                        <br />
+                        <apex:outputpanel id="AddStoreErrors" styleclass="error">
+                            <apex:messages styleclass="error apexMsgs" />
+                        </apex:outputpanel>
+                        <br />
+                        <apex:outputlabel value="TDLinx Submission Code(s)" styleclass="" /><span class=""></span>
+                        <input data-default="Hell World" class="tag" id="tags" name="tags" type="text" placeholder="Type TLinx Code then press Enter" />
+                        <p style="font-size:small; margin-top:20px;"><strong>Tip: </strong>Hit Backspace button or click X buttons to remove TDLinx Code values.</p>
+                        <center class="small">
+                            <button class="btn support primary" type="button" onclick="CollectionsEdit.CancelAddStoresModal()" style="border: 2px solid #e3465a; background: none; width: 100px; background-color: #ffffff; color: #e3465a; margin: 5px;">Cancel</button>
+                            <button id="addStoresSaveButton" class="btn support primary" type="button" onclick="CollectionsEdit.SaveStores();" style="border: 2px solid #1ec68a ; background: none; width: 100px; background-color: #1ec68a ; color: #ffffff; margin:5px;">Save</button>
+                        </center>
+                    </div>
+                </div>
+                <div id="confirmDeleteModal" class="modal" style="display:none;">
+                    <div class="content sm-modal">
+                        <h1 style="width: 500px; border-bottom: none; color: #e3465a">Confirm</h1>
+                        <div style="width: 500px; border-bottom: 2px solid #e3465a;">&nbsp;</div>
+                        <center class="small">
+                            <p id="confirmDeleteMessage"></p>
+                            <button class="btn support primary" type="button" onclick="CollectionsEdit.CancelConfirmDelete()" style="border: 2px solid #e3465a; background: none; width: 100px; background-color: #ffffff; color: #e3465a; margin: 5px;">No</button>
+                            <button id="addStoresSaveButton" class="btn support primary" type="button" onclick="CollectionsEdit.ConfirmDelete();" style="border: 2px solid #1ec68a ; background: none; width: 100px; background-color: #1ec68a ; color: #ffffff; margin:5px;">Yes</button>
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <apex:actionfunction action="{!SaveItem}" name="SaveItem" rerender="errorMessageBlock" oncomplete="CollectionsEdit.ReloadPage()">
+            <apex:param name="pEndDate" value="" assignto="{!Wrapper.EndDate}" />
+            <apex:param name="pResetStartDate" value="" assignto="{!Wrapper.ResetStartDate}" />
+            <apex:param name="pResetEndDate" value="" assignto="{!Wrapper.ResetEndDate}" />
+            <apex:param name="pNewSet" value="" assignto="{!Wrapper.NewSet}" />
+            <apex:param name="pOnMenu" value="" assignto="{!Wrapper.OnMenu}" />
+            <apex:param name="pStatesDisplay" value="" assignto="{!Wrapper.StatesDisplay}" />
+            <apex:param name="pSubAccounts" value="" assignto="{!Wrapper.SubAccountsDisplay}" />
+            <apex:param name="pMarketingGroups" value="" assignto="{!Wrapper.MarketingGroupsDisplay}" />
+            <apex:param name="pReportTos" value="" assignto="{!Wrapper.ReportTosDisplay}" />
+            <apex:param name="pNotes" value="" assignto="{!Wrapper.Item.NOTES_TXT__c}" />
+            <apex:param name="pFeaturePrice" value="" assignto="{!Wrapper.Price}" />
+            <apex:param name="pAddAll" value="" assignto="{!Wrapper.AddAllParentsDisplay}" />
+        </apex:actionfunction>
+        <apex:actionfunction action="{!EndItemToday}" name="EndItemToday" rerender="errorMessageBlock" oncomplete="CollectionsEdit.ReloadPage()">
+        </apex:actionfunction>
+        <apex:actionfunction action="{!SaveStoresByTDLinxCodes}" name="SaveStoresByTDLinxCodes" rerender="AddStoreErrors" oncomplete="CollectionsEdit.ShowAddStoresMessage()">
+            <apex:param name="pTDLinxCodes" value="" assignto="{!TDLinxCodesToAdd}" />
+        </apex:actionfunction>
+        <apex:actionfunction action="{!RemoveStores}" name="RemoveStores" rerender="errorMessageBlock" oncomplete="CollectionsEdit.RemoveStoresCallback()">
+            <apex:param name="pStoresToRemove" value="" assignto="{!StoresToRemove}" />
+        </apex:actionfunction>
+        <apex:actionfunction name="createSimilar" action="{!CreateSimilar}" />
+    </apex:form>
+
+    <script>
+    //Best practice: javascript closure to avoid polluting global scope.
+    var CollectionsEdit = function() {
+        var itemId = '{!currentAuthFeatureId}'; //The id of the Authorization/Feature.
+        var searchResultsData = [];
+        var storesToDeleteArray = [];
+        var toggleSelectAllRows = false;
+
+        //UI fix for column header sort arrows
+        var spanSorting = '<span class="arrow-hack sort">&nbsp;&nbsp;&nbsp;</span>',
+            spanAsc = '<span class="arrow-hack asc">&nbsp;&nbsp;&nbsp;</span>',
+            spanDesc = '<span class="arrow-hack desc">&nbsp;&nbsp;&nbsp;</span>';
+
+        //OnLoad - prepare elements, attach events, etc.
+        $(document).ready(function(){
+            InitializeForm();
+        });
+
+        function InitializeForm() {
+        checkAddAllStores('#addAllParentStores');
+            //create date pickers for 5 date fields: startDate, endDate, resetStartDate, resetEndDate, newStoresDate
+            $('input.customdatepicker').datepicker({"dateFormat":"mm/dd/yy"});
+            //Tags Input control for Add Stores Dialog
+
+            $('#tags').tagsInput({
+                'defaultText':'Provide TDLinx Submission Code and press Enter',
+                'onChange':function(event,ui) {
+                    toggleAddStoresSaveButton();
+                }
+            });
+            //All Tooltips
+            $('.helptext').tooltip();
+            //create multiselect checkbox dropdowns, and style accordingly.
+            $('select.multiselectCheckbox').multiselect({
+                header:false,
+                selectedList: 5,
+                minWidth : 150,
+                noneSelectedText:'Please Select',
+                open: function(event, ui){
+                    $(event.target).css({
+                        'border':'1px solid #06a0db',
+                        'outline': 'none !important'
+                    });
+                },
+                close: function(event, ui){
+                    $(event.target).css({
+                        'border':'1px solid #dcdcdc'
+                    });
+                }
+            });
+
+            //VF styles collide with custom styles/hovers for Buttons
+            //Default search button CSS and disable it.
+            //cssButtonDefault('searchButton');
+            //cssButtonDefault('clearFormButton');
+            //cssButtonPrimary('searchButton');
+            //cssButtonSupport('clearFormButton');
+            //Override the MultiSelect button that is created for States
+            cssButtonLikeDropdownStyle('stateDropdown_ms');
+            cssButtonLikeDropdownStyle('subAccountDropdown_ms');
+            cssButtonLikeDropdownStyle('marketingGroupDropdown_ms');
+            cssButtonLikeDropdownStyle('reportToDropdown_ms');
+
+            //Build table.
+            buildTable();
+
+            //Find authorized stores
+            refreshStores();
+
+            document.getElementById('editAddAll').onchange = function() {
+            console.log('in edit on change: ');
+            document.getElementById('selectionCriteria').style.display = this.checked ? 'none' : 'inline-block';
+            clearMultiselect();
+
+            };
+        }
+
+        function checkAddAllStores(element){
+        var addAllParentAccounts = $(element).val();
+            if(addAllParentAccounts == "true"){
+                $(element).prop('checked', true);
+            }else{
+                $(element).prop('checked', false);
+            }
+        }
+
+
+        function clearMultiselect(){
+            $('#subAccountDropdown').multiselect("uncheckAll");
+            $('#marketingGroupDropdown').multiselect("uncheckAll");
+            $('#reportToDropdown').multiselect("uncheckAll");
+            $('#stateDropdown').multiselect("uncheckAll");
+        }
+
+        function preselectCheckboxField(checkboxSelector, selectedOptionsString) {
+            //Determine which checkboxes should be pre-checked based on values coming from Salesforce
+            //by comparing each Option to SF's delimited String using indexOf.
+            $(checkboxSelector).multiselect("uncheckAll");
+            $(checkboxSelector).multiselect("widget").find(":checkbox").each(function(){
+                var currentOption = $(this).val();
+         console.log('current option' + currentOption);
+                if (selectedOptionsString.indexOf(currentOption) !== -1 && this.checked === false) {
+                    this.click();
+                }
+            });
+        }
+        function preCheckStoreSetFields() {
+            //Check States
+            var states = '{!Wrapper.StatesDisplay}';
+            var p = preselectCheckboxField("#stateDropdown", states);
+            console.log('states after call ' + p);
+            var subs = '{!Wrapper.SubAccountsDisplay}';
+            var mGroups = '{!Wrapper.MarketingGroupsDisplay}';
+            var reportTos = '{!Wrapper.ReportTosDisplay}';
+
+            //Figure out which field has values in it. show that one, hide the others. And pre-select the correct checkboxes.
+            //The Click handler is invoked (which hides/shows appropriately)
+            if (subs.length > 0 && subs !== 'None') {
+                $('#subAccountRadio').click();
+                preselectCheckboxField("#subAccountDropdown", subs);
+            }
+            else if (mGroups.length > 0 && mGroups !== 'None') {
+                $('#groupRadio').click();
+                preselectCheckboxField("#marketingGroupDropdown", mGroups);
+            }
+            else if (reportTos.length > 0 && reportTos !== 'None') {
+                $('#reportToRadio').click();
+                preselectCheckboxField("#reportToDropdown", reportTos);
+            } else {
+                //Default to Sub Accounts being shown in case no Store Set fields are populated.
+                $('#subAccountRadio').click();
+            }
+        }
+        function setCheckboxByString(checkboxSelector, yesOrNoString) {
+            var chkField = $(checkboxSelector);
+            if (yesOrNoString === 'Yes') {
+                chkField.prop('checked', true);
+            } else {
+                chkField.prop('checked', false);
+            }
+        }
+        function cancel() {
+            defaultInputFields();
+            showEditMode(false);
+            //Clear out error messages, if any
+            $('[id$=errorMessageBlock]').empty();
+        }
+        function edit() {
+            showEditMode(true);
+            var store = $('#editAddAll').prop('checked');
+            console.log('in edit: '+store);
+             if(store === true){
+              showCriteria(false);
+            }else{
+               showCriteria(true);
+            }
+        }
+
+        function showCriteria(show){
+            if(show === true){
+                 $("#selectionCriteria").css({
+                        'display': 'initial'
+                    });
+            }else{
+                $("#selectionCriteria").css({
+                        'display': 'none'
+                    });
+            }
+        }
+        function defaultInputFields() {
+            preCheckStoreSetFields();
+            checkAddAllStores('#editAddAll');
+            setCheckboxByString('#newSetCheckbox','{!Wrapper.NewSet}');
+            setCheckboxByString('#onMenuCheckbox','{!Wrapper.OnMenu}');
+            $('#endDate').val('{!Wrapper.EndDate}');
+            $('#resetStartDate').val('{!Wrapper.ResetStartDate}');
+            $('#resetEndDate').val('{!Wrapper.ResetEndDate}');
+            $('#notesTextArea').val("{!Wrapper.Item.NOTES_TXT__c}");
+
+        }
+        function showEditMode(showEdit) {
+            if (showEdit === true) {
+                //Show Save/Cancel buttons, hide others, disable Add Stores, show Edit Div
+                $('#cloneButton').css({'display':'none'});
+                $('#editButton').css({'display':'none'});
+                $('#endButton').css({'display':'none'});
+                $('#saveButton').css({'display':'inline'});
+                $('#cancelEditButton').css({'display':'inline'});
+                $('#addStoresButton').css({'display':'none'});
+                $('#massDeleteButton').css({'display':'none'});
+                //Show Edit mode, hide Detail mode
+                $('#detailModeDiv').css({'display':'none'});
+                $('#editModeDiv').css({'display':'inline'});
+                defaultInputFields();
+
+            } else {
+                $('#cloneButton').css({'display':'inline'});
+                $('#editButton').css({'display':'inline'});
+                $('#endButton').css({'display':'inline'});
+                $('#saveButton').css({'display':'none'});
+                $('#cancelEditButton').css({'display':'none'});
+                $('#addStoresButton').css({'display':'inline'});
+                $('#massDeleteButton').css({'display':'inline'});
+
+                $('#editModeDiv').css({'display':'none'});
+                $('#detailModeDiv').css({'display':'inline'});
+            }
+        }
+
+        function deleteRow(itemAuthId) {
+            alert('Item Auth: ' + itemAuthId);
+            return false;
+        }
+
+        function buildTable() {
+
+            // Search Results DataTable configuration
+            $('#searchResultsTable').DataTable({
+                "select":true,
+                "processing":false,
+                "order": [[ 1, "desc" ]],
+                "data":searchResultsData,
+                "columns": [
+                    { data: 'Id', "defaultContent":""}, //Checkbox
+                    { data: 'Account__r.Store_Code__c', "defaultContent":"" }, //TD Linx Sub Code is actually Store_Code__c
+                    { data: 'Account__r.Store_Number_EDW__c', "defaultContent":"" }, //Store Number
+                    { data: 'Account__r.Name', "defaultContent":""}, //Store Name
+                    { data: 'Account__r.BillingStreet', "defaultContent":""}, //Address
+                    { data: 'Account__r.BillingCity', "defaultContent":""}, //City
+                    { data: 'Account__r.BillingState', "defaultContent":""}, //State
+                    { data: 'Id', "defaultContent":"" } //GarbageCanLink   <td><img src="{!URLFOR($Resource.PatternLib, '/pattern-library/css/assets/delete-ico-bl.svg')}" /></td>
+                ],
+                "columnDefs": [
+                    {   "orderable": false,
+                        "targets": [0,-1] },
+                    {   "targets": -1,
+                        "data":"Id",
+                        "render": function(data,type,full,meta){
+                            return '<img style="border-style: none; border:0;" class="delete-anchor" src="blank.gif" onclick="CollectionsEdit.DeleteSingleRow(&quot;'+data+'&quot;)" />';
+                        }
+                    },
+                    {   "targets":0,
+                        "data":null,
+                        "render": function(data,type,full,meta){
+                            return '<input class="searchRowCheckbox" type="checkbox" name="searchRowCheckbox" value="' + data + '" />';
+                        }
+                    }
+                ],
+                "searching":false,
+                "lengthMenu":[15,25,50],
+                "language":{
+                    "lengthMenu": "SHOW&nbsp;&nbsp;_MENU_",
+                    "infoEmpty":"",
+                    "zeroRecords":"{!MyEmptyStoreResults}",
+                    "emptyTable":"{!MyEmptyStoreResults}",
+                    "paginate": {
+                        "next":"",
+                        "previous":""
+                    }
+                },
+                //"dom": '<"informationTopLeft"i>rt<<"bottomCenterPagination"p><"bottomLengthMenu"l>><"clear">'
+                "dom": '<"informationTopLeft"i>rt<"bottomCenterPagination"pl><"clear">'
+            });
+
+            //Hack the Sorting of the column header to get ICON to appear directly
+            //right of Column Header Text.
+            //Credit: http://jsfiddle.net/dmn4q141/
+            $("#searchResultsTable").on('click', 'th', function() {
+                $("#searchResultsTable thead th").each(function(i, th) {
+                    $(th).find('.arrow-hack').remove();
+                    var html = $(th).html(),
+                        cls = $(th).attr('class');
+                    switch (cls) {
+                        case 'sorting_asc' :
+                            $(th).html(html+spanAsc); break;
+                        case 'sorting_desc' :
+                            $(th).html(html+spanDesc); break;
+                        default :
+                            $(th).html(html+spanSorting); break;
+                    }
+                });
+            });
+            $("#searchResultsTable th").first().next().click().click().click();
+        }
+
+        function cssButtonDefault(elementName) {
+            $('#'+elementName).css({
+                'margin-top':'15px',
+                'min-width' : '100px',
+                'padding': '11px 20px',
+                'text-align': 'center',
+                'text-decoration': 'none',
+                'border-radius': '5px',
+                'font-size': '12px',
+                'display': 'inline-block',
+                'margin': '5px',
+                'border': '0px',
+                'cursor': 'pointer',
+                'width': '155px',
+                'height': '36px',
+                'color': '#ffffff',
+                'background':'none'});
+        }
+
+        function cssButtonDisabled(elementName) {
+            $('#'+elementName).prop('disabled','disabled').css({
+                'background-color' : '#dcdcdc',
+                'border' : 'none',
+                'cursor' : 'default'});
+        }
+        function cssButtonActionFinal(elementName) {
+            $('#'+elementName).prop('disabled',false).css({
+                'background-color' : '#1ec68a',
+                'color' : '#ffffff',
+                'cursor' : 'pointer'});
+        }
+        function cssButtonPrimary(elementName) {
+            $('#'+elementName).css({
+                'background-color' : '#06A0DB',
+                'cursor' : 'pointer'});
+        }
+        function cssButtonSupport(elementName) {
+            $('#'+elementName).css({
+                'background-color' : '#ffffff',
+                'color' : '#06A0DB',
+                'cursor' : 'pointer',
+                'border' : '2px solid #06A0DB'});
+        }
+        function cssButtonLikeDropdownStyle(elementName) {
+            $('#'+elementName).css({
+                /*'background':'none',*/
+                'background-color' : '#ffffff',
+                'color' : '#4a4a4a',
+                'cursor' : 'pointer',
+                'display':'block',
+                'border' : '1px solid #dcdcdc',
+                'border-radius' : '8px',
+                'margin-top':'15px',
+                'padding':'10px 12px',
+                'font-size': '12px',
+                'font-weight':'normal'
+            });
+        }
+
+        function makeDefaultOption() {
+            return '<option value="" selected>Please Select</option>';
+        }
+        function toggleAllButtonsDisabled(isDisabled) {
+            if (isDisabled === true) {
+                $(':button').prop('disabled','disabled');
+                $(':button').removeClass('disabled');
+                cssButtonDisabled('searchButton');
+            } else {
+                $(':button').prop('disabled',false);
+                $(':button').addClass('disabled');
+                cssButtonPrimary('searchButton');
+            }
+        }
+
+        function refreshStores() {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.CBIUSCollectionsUtility.FindStoresByItemId}',
+                itemId,
+                function(result, event){
+                    if (event.status) {
+                        var theTable = $('#searchResultsTable').DataTable();
+                        theTable.clear();
+                        theTable.rows.add(result).draw();
+                    } else {
+                        // TODO: deal with error
+                        alert('Callout error: ' + event.message);
+                    }
+                },
+                {escape: false}
+            );
+        }
+        function doSaveStores() {
+            var tdLinkCodesArr = $("#tags").val();
+            if (!tdLinkCodesArr) { tdLinkCodesArr = []; }
+            SaveStoresByTDLinxCodes(tdLinkCodesArr);
+        }
+        function toggleAddStoresSaveButton() {
+            var tagsValue = $('#tags').val();
+            if (!tagsValue) {
+                cssButtonDisabled('addStoresSaveButton');
+            } else {
+                cssButtonActionFinal('addStoresSaveButton');
+            }
+        }
+        function saveAllEdits() {
+            var endDate = $('#endDate').val();
+            var resetStartDate = $('#resetStartDate').val();
+            var resetEndDate = $('#resetEndDate').val();
+            var newSet = $('#newSetCheckbox').prop('checked') === true ? 'Yes' : 'No';
+            var onMenu = $('#onMenuCheckbox').prop('checked') === true ? 'Yes' : 'No';
+            var addAllParentAccounts = $('#editAddAll').prop('checked') === true ? 'True' : 'False';
+            var statesArray = $("#stateDropdown").multiselect("getChecked").map(function(){
+               return this.value;
+            }).get();
+            var subAccounts = $("#subAccountDropdown").multiselect("getChecked").map(function(){
+               return this.value;
+            }).get();
+            var mGroups = $("#marketingGroupDropdown").multiselect("getChecked").map(function(){
+               return this.value;
+            }).get();
+            var reportTos = $("#reportToDropdown").multiselect("getChecked").map(function(){
+               return this.value;
+            }).get();
+            var notes = $('#notesTextArea').val();
+            var featurePrice = $('#priceInput').val();
+
+            //Call ActionFunction SaveItem and pass parameters so that they will bind via apex:parameters
+            SaveItem(endDate,resetStartDate,resetEndDate,newSet,onMenu,statesArray.join('|'),
+                    subAccounts.join('|'),mGroups.join('|'),reportTos.join('|'),notes,featurePrice,addAllParentAccounts);
+        }
+
+        function storeSetTypeOnChange() {
+            var storeSetRadio = $("input[name=storeSetType]:checked").val();
+            $('#subAccountDropdown').multiselect("uncheckAll");
+            $('#marketingGroupDropdown').multiselect("uncheckAll");
+            $('#reportToDropdown').multiselect("uncheckAll");
+            if (storeSetRadio == 'sub') {
+                $('#subAccountDropdown_ms').css({'display':'inline'});
+                $('#marketingGroupDropdown_ms').css({'display':'none'});
+                $('#reportToDropdown_ms').css({'display':'none'});
+                $('#storeSetFieldLabel').text('Sub Account(s)');
+            } else if (storeSetRadio == 'group') {
+                $('#subAccountDropdown_ms').css({'display':'none'});
+                $('#marketingGroupDropdown_ms').css({'display':'inline'});
+                $('#reportToDropdown_ms').css({'display':'none'});
+                $('#storeSetFieldLabel').text('Marketing Group(s)');
+            } else {
+                $('#subAccountDropdown_ms').css({'display':'none'});
+                $('#marketingGroupDropdown_ms').css({'display':'none'});
+                $('#reportToDropdown_ms').css({'display':'inline'});
+                $('#storeSetFieldLabel').text('Report To(s)');
+            }
+        }
+        function clearAddStoresModal() {
+            //Clear out error messages, if any
+            $('[id$=AddStoreErrors]').empty();
+            $('#tags').importTags('');
+        }
+        function showAddStores() {
+            $('#addStoresModal').css({'display':'block'});
+            clearAddStoresModal();
+            toggleAddStoresSaveButton();
+            cssButtonDisabled('addStoresSaveButton');
+            $('#tags_tag').focus();
+        }
+        function cancelAddStores() {
+            clearAddStoresModal();
+            $('#addStoresModal').css({'display':'none'});
+        }
+        function massDeleteRows() {
+            var checkedVals = $('.searchRowCheckbox:checkbox:checked').map(function() {
+                return this.value;
+            }).get();
+            showConfirmDelete(checkedVals);
+        }
+        function toggleRowsSelected() {
+            toggleSelectAllRows = !toggleSelectAllRows;
+            if (toggleSelectAllRows === true) {
+                $('.searchRowCheckbox').prop('checked', true);
+            } else {
+                $('.searchRowCheckbox').prop('checked', false);
+            }
+        }
+        function deleteSingleRow(theId) {
+            var tmpArray = [theId];
+            showConfirmDelete(tmpArray);
+        }
+        function showConfirmDelete(storesArray) {
+            var promptMsg = '';
+            if (storesArray.length === 1) {
+                promptMsg = 'This will permanently remove selected store from {!Wrapper.Item.RecordType.Name} {!Wrapper.Item.Name}. Are you sure you want to continue?';
+            } else if (storesArray.length > 1) {
+                promptMsg = 'This will permanently remove ' + storesArray.length + ' selected stores from {!Wrapper.Item.RecordType.Name} {!Wrapper.Item.Name}. Are you sure you want to continue?';
+            } else {
+                alert('Please select at least one store to remove from the item.');
+                return;
+            }
+            storesToDeleteArray = storesArray;
+            $('#confirmDeleteMessage').html(promptMsg);
+            $('#confirmDeleteModal').css({'display':'block'});
+        }
+        function doDelete() {
+            RemoveStores(storesToDeleteArray.join(','));
+        }
+        function cancelDelete() {
+            storesToDeleteArray = [];
+             $('#confirmDeleteModal').css({'display':'none'});
+        }
+
+        //Public functions & variables to expose.
+        return {
+            ShowEditForm: edit,
+            CancelEdit: cancel,
+            StoreSetOnChange: storeSetTypeOnChange,
+            DoSave: saveAllEdits,
+            ShowAddStoresModal: showAddStores,
+            CancelAddStoresModal: cancelAddStores,
+            SaveStores: doSaveStores,
+            MassDelete: massDeleteRows,
+            RefreshStores: refreshStores,
+            DeleteSingleRow: function(idFromRow) {
+                deleteSingleRow(idFromRow);
+            },
+            ConfirmDelete:doDelete,
+            CancelConfirmDelete: cancelDelete,
+            ToggleAllCheckedStores: toggleRowsSelected,
+            ReloadPage: function() {
+                    //Any errors returned?
+                    var errorLength = $('[id$=errorMessageBlock]').children().length;
+                    if (errorLength > 0) {
+                        //just stay in edit mode so user can adjust values.
+                    } else {
+                        //refreshStores();
+                        window.location = window.location.href;
+                    }
+            },
+            ShowAddStoresMessage: function() {
+                var errorLength = $('[id$=AddStoreErrors]').children().length;
+                if (errorLength > 0) {
+                    //Just leave the dialog open, but refresh stores grid in case of partial success
+                    //Consideration: clean out the TDLinx tags control.
+                    refreshStores();
+                } else {
+                    refreshStores(); //Refresh the stores grid
+                    cancelAddStores(); //Close the dialog.
+                }
+            },
+            RemoveStoresCallback: function() {
+                storesToDeleteArray = [];
+                //Don't worry about any errors, they will just show up on the main page.
+                //Refresh the grid and close the modal.
+                var errorLength = $('[id$=errorMessageBlock]').children().length;
+                refreshStores();
+                cancelDelete();
+            }
+        };
+    }();
+
+    //Google Analytics - self-executing
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+      ga('create', '{!GoogleAnalyticsCode}', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+</apex:component>
